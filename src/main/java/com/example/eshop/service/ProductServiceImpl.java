@@ -69,4 +69,9 @@ public class ProductServiceImpl implements ProductService{
         if(list.isEmpty()) throw new ProductNotFoundException("Database is empty, products not found.");
         return list;
     }
+
+    @Override
+    public Product update(Product product) {
+        return productRepository.save(product);
+    }
 }

@@ -11,4 +11,5 @@ public interface ProductService {
     Product getById(Integer id);
 
     List<Product> findAll();
+    Product update(Product product);
 }

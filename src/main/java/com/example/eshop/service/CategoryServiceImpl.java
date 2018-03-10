@@ -33,6 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category findById(Integer id) {
         Category category = categoryRepository.findById(id).get();
+        if(category == null) throw new ProductNotFoundException("Category with ID not [" + id + "] not found");
         return category;
     }
 
