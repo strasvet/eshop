@@ -1,7 +1,7 @@
 package com.example.eshop.configuration;
 
-import com.example.eshop.exception.InputValidationException;
 import com.example.eshop.exception.UserNotFoundException;
+import com.example.eshop.exception.myn.UserUnAuthorizedException;
 import com.example.eshop.model.UserSession;
 import com.example.eshop.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -30,9 +29,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         if(header!=null) {
             UserSession userSession = sessionRepository.getBySessionId(header);
             if (userSession == null) {
-               // String errorMessage = String.format("Unauthorized in the system");
+                // String errorMessage = String.format("Unauthorized in the system");
                 //throw new InputValidationException("unauth", errorMessage);
-                throw new UserNotFoundException("Unauthorized"); //401
+                throw new UserNotFoundException("Unauthorized, userSession == null"); //401
+            }
+            //if header is valid and if header is equals usersession.sessionId
+            if(!userSession.getIsValid()){
+                throw new UserUnAuthorizedException("Unauthorized, Your session is invalid - is not valid"); //401
             }
             UserDetails userDetails = new User(
                     userSession.getUser().getUserName(),

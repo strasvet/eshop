@@ -19,5 +19,7 @@ public interface UserService {
 
     User logIn(LoginRequest request);
 
-    void invalidateSession(String sessionId);
+    Boolean invalidateSession(String sessionId);
+
+    void logOut(String sessionId);
 }

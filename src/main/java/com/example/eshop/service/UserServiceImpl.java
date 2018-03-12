@@ -2,6 +2,7 @@ package com.example.eshop.service;
 
 import com.example.eshop.exception.InputValidationException;
 import com.example.eshop.exception.UserNotFoundException;
+import com.example.eshop.exception.myn.UserUnAuthorizedException;
 import com.example.eshop.model.Enum.Role;
 import com.example.eshop.model.User;
 import com.example.eshop.model.UserSession;
@@ -11,8 +12,10 @@ import com.example.eshop.repository.SessionRepository;
 import com.example.eshop.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +30,10 @@ public class UserServiceImpl implements UserService{
     @Autowired
     private SessionRepository sessionRepository;
 
+    @Autowired
+    private UserService userService;
+/*    @Autowired
+    private EntityManager entityManager;*/
     @Override
     public User create(RegistrationRequest request) {
         User findUser = userRepository.findByEmail(request.getEmail());
@@ -87,26 +94,62 @@ public class UserServiceImpl implements UserService{
     public User logIn(LoginRequest request) {
         User user = userRepository.getByUserNameAndPassword(request.getUserName(), request.getPassword());
         if (user == null) {
-            throw new UserNotFoundException("User by username ["+ request.getUserName()+ "] and password ["+request.getPassword() +"] not found in the system");
+            throw new UserNotFoundException("User by username [" + request.getUserName() + "] and password [" + request.getPassword() + "] not found in the system");
         }
         UserSession userSession = new UserSession();
-        userSession.setSessionId(user.getId());
-        userSession.setUser(user);
-        userSession.setIsValid(true);
-        sessionRepository.save(userSession);
-        return user;
+
+
+        UserSession finedSession = new UserSession();
+        /*
+        finedSession = sessionRepository.getBySessionId(user.getId());
+        if(finedSession!= null && !finedSession.getIsValid()){
+            entityManager.refresh(user);
+        }
+        */
+        finedSession = sessionRepository.getBySessionId(user.getId());
+        if (finedSession == null) {
+            userSession.setSessionId(user.getId());
+            ////
+            userSession.setUser(user);
+            userSession.setIsValid(true);
+            sessionRepository.save(userSession);
+            return user;
+        } else if (!finedSession.getIsValid()) {
+            finedSession.setIsValid(true);
+            sessionRepository.save(finedSession);
+            return user;
+        } else {
+            String errorMessage = String.format("You are already in the system [%s]", finedSession.getSessionId());
+            throw new InputValidationException("alreadylogin", errorMessage);
+        }
+
     }
 
     @Override
-    public void invalidateSession(String sessionId) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Boolean invalidateSession(String sessionId) {
         UserSession userSession = sessionRepository.getBySessionId(sessionId);
         System.err.println(userSession);
         if(userSession == null || !userSession.getIsValid()) {
-            System.err.println("NOT FOUND USER SESSION/VALID SESSION!!!");
-            return;
+            System.err.println("NOT FOUND USER SESSION/INVALID SESSION!!!");
+            System.err.println(userSession);
+            return false;
+        }else{
+            userSession.setIsValid(false);
+            sessionRepository.save(userSession);
+            System.err.println(userSession);
+            return true;
         }
-        userSession.setIsValid(false);
-        sessionRepository.save(userSession);
-        sessionRepository.delete(userSession);
+    }
+
+    @Override
+    public void logOut(String sessionId) {
+        Boolean logOut = userService.invalidateSession(sessionId);
+        if(!logOut){
+            String errorMessage = String.format("NotFound Session or session is InValid ");
+            throw new InputValidationException("logOut", errorMessage);
+        }
+            String errorMessage = String.format("You are exit from system ");
+            throw new InputValidationException("logOut", errorMessage);
     }
 }

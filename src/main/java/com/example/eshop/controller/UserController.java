@@ -40,7 +40,7 @@ public class UserController {
     @PutMapping("/logout")
     public void logOut(@RequestHeader("Authorization") String sessionId){
         //if (result.hasErrors()) { throw new InputValidationException(result); }
-        userService.invalidateSession(sessionId);
+        userService.logOut(sessionId);
     }
 
     @PostMapping("/register")
