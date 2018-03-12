@@ -1,6 +1,7 @@
 package com.example.eshop.repository;
 
 import com.example.eshop.model.User;
+import com.example.eshop.model.web.LoginRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,8 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findByEmail(String email);
+
+    User getByUserNameAndPassword(String username, String password);
 
 /*
 
@@ -27,6 +30,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> findAllByIsActivatedTrue();
 
     Page<User> findAllByCreatedOnNotNull(Pageable pageable);
+
+
 */
 
 

@@ -2,6 +2,7 @@ package com.example.eshop.controller;
 
 import com.example.eshop.exception.InputValidationException;
 import com.example.eshop.model.User;
+import com.example.eshop.model.web.LoginRequest;
 import com.example.eshop.model.web.RegistrationRequest;
 import com.example.eshop.repository.UserRepository;
 import com.example.eshop.service.UserService;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +29,20 @@ public class UserController {
         user.setFirstName(username);
         return userRepository.save(user);
     }*/
+
+    @PostMapping("/login")
+    public User login(@RequestBody @Valid LoginRequest request, BindingResult result){
+        if (result.hasErrors()) {
+            throw new InputValidationException(result);
+        }
+        return userService.logIn(request);
+    }
+    @PutMapping("/logout")
+    public void logOut(@RequestHeader("Authorization") String sessionId){
+        //if (result.hasErrors()) { throw new InputValidationException(result); }
+        userService.invalidateSession(sessionId);
+    }
+
     @PostMapping("/register")
     public User register(@RequestBody RegistrationRequest request, BindingResult result){
         if (result.hasErrors()) {
@@ -50,10 +66,9 @@ public class UserController {
         return userService.findAll();
     }
 
-    @GetMapping("/{userId}")
-    public User getUserById(
-            @PathVariable("userId") Integer userId) {
-        return userService.getById(userId);
+    @GetMapping("/{email}")
+    public User getUserById(@PathVariable("email") String email,@RequestHeader("Authorization") String sessionId) {
+        return userService.findByEmail(email);
     }
     /*
     @GetMapping("/all")
