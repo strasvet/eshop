@@ -1,12 +1,15 @@
 package com.example.eshop.service;
 
 import com.example.eshop.exception.InputValidationException;
+import com.example.eshop.exception.myn.InsufficiendFundsException;
+import com.example.eshop.exception.myn.NotEnoughProductsException;
 import com.example.eshop.exception.myn.ProductNotFoundException;
 import com.example.eshop.model.Product;
 import com.example.eshop.model.Purchase;
 import com.example.eshop.model.User;
 import com.example.eshop.model.web.PurchaseRequest;
 import com.example.eshop.repository.PurchaseRepository;
+import com.example.eshop.repository.SessionRepository;
 import com.example.eshop.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,24 +31,27 @@ public class PurchaseServiceImpl implements PurchaseService{
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private SessionRepository sessionRepository;
+
     @Override
-    public Purchase create(PurchaseRequest request) {
-        User boughtBy = userService.findByEmail(request.getBoughtByEmail());//kupil dont by from ne shuschestvueshiy user
+    public Purchase create(PurchaseRequest request,String sessionId) {
+        //search bought user from session ID
+        User boughtBy = sessionRepository.getBySessionId(sessionId).getUser();
+        //User boughtBy = userService.findByEmail(request.getBoughtByEmail());//kupil dont by from ne shuschestvueshiy user bez session id
 
         Product product = productService.getById(request.getProductId());
         if(product==null)throw new ProductNotFoundException("Product with ID [" + request.getProductId() + "] is not found");
-
-      /*  Purchase purchaseFind = purchaseRepository.findByProduct_idAndBoughtBy(product, boughtBy);
-        if(purchaseFind != null){
-            String errorMessage = String.format("Purchase [%s] is already present in the system, purchased by: ", boughtBy.getEmail());
-            throw new InputValidationException("category", errorMessage);
+        //
+        if(product.getSeller().getId().equals(boughtBy.getId())){
+            throw new IllegalStateException("NELZYA KUPIT U SAMOGO SEBYA!!!");
         }
-        */
+
+        //
 
         Purchase purchase = new Purchase();
         purchase.setBoughtBy(boughtBy); //pokupatel
         purchase.setSellDate(new Date());
-
 
         //prduct get vverhu
         purchase.setSoldBy(product.getSeller()); //prodavec by id product
@@ -56,29 +62,34 @@ public class PurchaseServiceImpl implements PurchaseService{
         purchase.setProduct_id(productService.getById(product.getId()));
 
 
-
+        //TO DO check quantity
         if(request.getQuantity()>product.getQuantity()) {
-                String errorMessage = String.format("Quantity [%s] from buyer > quantity from seller [%s] ",request.getQuantity(), product.getQuantity());
-                throw new InputValidationException("quantity", errorMessage);
-            }
+            throw new NotEnoughProductsException("Not enought product from seller, you over limit");
+            //String errorMessage = String.format("Quantity [%s] from buyer > quantity from seller [%s] ",request.getQuantity(), product.getQuantity());
+            //throw new InputValidationException("quantity", errorMessage);
+        }
         purchase.setQuantity(request.getQuantity());
 
 
-        //sdelat proverku on quantity
-        //perezapis dlya ostavshihsya quantity prodavca
+        //update quantity seller
         product.setQuantity(product.getQuantity()-request.getQuantity());
         productService.update(product);
 
 
-        //sdelat proverky on balance
-        //perezapis balance
+        //check balance bought
+        //reWrite balance
         Double endSummAll = request.getQuantity()*endPrice;
         if(endSummAll>boughtBy.getBalance()) {
-            String errorMessage = String.format("End Summ of All Product [%s]  > from balance buyer [%s] ",endSummAll, boughtBy.getBalance());
-            throw new InputValidationException("quantity", errorMessage);
+            throw new InsufficiendFundsException("Not enough money, you over limit");
+            //String errorMessage = String.format("End Summ of All Product [%s]  > from balance buyer [%s] ",endSummAll, boughtBy.getBalance());
+            //throw new InputValidationException("quantity", errorMessage);
         }
         boughtBy.setBalance(boughtBy.getBalance()-endSummAll);
         userService.update(boughtBy);
+
+        //Add money from deal to seller
+        User seller = productService.getById(request.getProductId()).getSeller();
+        seller.setBalance(seller.getBalance()+endSummAll);
 
         return purchaseRepository.save(purchase);
     }

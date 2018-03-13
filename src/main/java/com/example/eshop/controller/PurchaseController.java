@@ -18,11 +18,11 @@ public class PurchaseController {
     private PurchaseService purchaseService;
 
     @PostMapping("/register")
-    public Purchase register(@RequestBody PurchaseRequest request, BindingResult result){
+    public Purchase register(@RequestBody PurchaseRequest request, BindingResult result, @RequestHeader("Authorization") String sessionId ){
         if (result.hasErrors()) {
             throw new InputValidationException(result);
         }
-        return purchaseService.create(request);
+        return purchaseService.create(request, sessionId);
     }
     @GetMapping("/{purchaseId}")
     public Purchase getById(@PathVariable("purchaseId") Integer purchaseId) {

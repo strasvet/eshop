@@ -13,6 +13,8 @@ public interface UserService {
 
     List<User> findAll();
 
+    List<?> findAllCustom(String sessionId);
+
     User findByEmail(String email);
 
     User update(User user);

@@ -15,7 +15,7 @@ public class ProductRequest {
     private String description;
     private Double price;
     private Integer category;
-    private User seller;
+    //private User seller;
     //in percents %
     private Integer discount;
     private Integer quantity;

@@ -61,10 +61,15 @@ public class UserController {
 
     }
 
-    @GetMapping("/all")
+  /*  @GetMapping("/all")
     public List<User> findAll(){
         return userService.findAll();
+    }*/
+      @GetMapping("/all")
+    public List<?> findAll(@RequestHeader("Authorization") String sessionId){
+        return userService.findAllCustom(sessionId);
     }
+
 
     @GetMapping("/{email}")
     public User getUserById(@PathVariable("email") String email,@RequestHeader("Authorization") String sessionId) {

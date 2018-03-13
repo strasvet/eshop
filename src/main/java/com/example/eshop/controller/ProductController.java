@@ -19,18 +19,22 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping("/register")
-    public Product register(@RequestBody ProductRequest request, BindingResult result){
+    public Product register(@RequestBody ProductRequest request, BindingResult result, @RequestHeader("Authorization") String sessionId ){
         if (result.hasErrors()) {
             throw new InputValidationException(result);
         }
-        return productService.create(request);
+        return productService.create(request, sessionId);
     }
     @GetMapping("/{productId}")
     public Product getUserById(@PathVariable("productId") Integer productId) {
         return productService.getById(productId);
     }
-    @GetMapping("/all")
+    /*@GetMapping("/all")
     public List<Product> findAll(){
         return productService.findAll();
+    }*/
+    @GetMapping("/all")
+    public List<?> findAll(@RequestHeader("Authorization") String sessionId){
+        return productService.customAll(sessionId);
     }
 }

@@ -13,7 +13,7 @@ import java.util.Date;
 @Builder
 public class PurchaseRequest {
     private Integer productId;
-    private String boughtByEmail;
+    //private String boughtByEmail;
     private Integer quantity;
     /*
     private User soldBy;

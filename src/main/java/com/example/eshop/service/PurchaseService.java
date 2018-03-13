@@ -6,7 +6,7 @@ import com.example.eshop.model.web.PurchaseRequest;
 import java.util.List;
 
 public interface PurchaseService {
-    Purchase create(PurchaseRequest request);
+    Purchase create(PurchaseRequest request, String sessionId);
     Purchase getById(Integer id);
     List<Purchase> findAll();
 }

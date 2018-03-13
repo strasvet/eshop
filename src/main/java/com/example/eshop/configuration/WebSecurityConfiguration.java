@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.Arrays;
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true,securedEnabled = true)
 @Configuration
@@ -29,6 +31,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .authorizeRequests()
                 .antMatchers("/users/register/**").permitAll()
                 .antMatchers("/users/login/**").permitAll()
+                .antMatchers("/category**").hasRole("ADMIN")
+                .antMatchers("/category/**").hasRole("ADMIN")
+                .antMatchers("/category/all**").hasAnyRole("ADMIN", "BUYER", "SELLER")
+                .antMatchers("/product**").hasAnyRole("ADMIN", "BUYER", "SELLER")
+                .antMatchers("/purchase**").hasAnyRole("ADMIN", "BUYER", "SELLER")
                 //.antMatchers("/users/**").permitAll()
                 //.antMatchers("/users/promote/**").hasRole("ADMIN").antMatchers("/users/demote/**").hasRole("ADMIN")
                 .anyRequest().authenticated();

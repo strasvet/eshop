@@ -6,6 +6,7 @@ import com.example.eshop.exception.myn.UserUnAuthorizedException;
 import com.example.eshop.model.Enum.Role;
 import com.example.eshop.model.User;
 import com.example.eshop.model.UserSession;
+import com.example.eshop.model.dtoByRole.UserForNoAdmin;
 import com.example.eshop.model.web.LoginRequest;
 import com.example.eshop.model.web.RegistrationRequest;
 import com.example.eshop.repository.SessionRepository;
@@ -72,6 +73,16 @@ public class UserServiceImpl implements UserService{
         List<User> list = userRepository.findAll();
         if(list.isEmpty()) throw new UserNotFoundException("Database is empty, users not found.");
         return list;
+    }
+
+    @Override
+    public List<?> findAllCustom(String sessionId) {
+        User userCheckRole = sessionRepository.getBySessionId(sessionId).getUser();
+        if(userCheckRole.getRoles().contains(Role.ADMIN)){
+            return userService.findAll();
+        }
+        //List<UserForNoAdmin> list;
+        return userRepository.getUserForNoAdmin();
     }
 
     @Override
