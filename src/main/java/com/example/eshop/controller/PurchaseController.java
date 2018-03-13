@@ -2,6 +2,7 @@ package com.example.eshop.controller;
 
 import com.example.eshop.exception.InputValidationException;
 import com.example.eshop.model.Purchase;
+import com.example.eshop.model.dtoByRole.PurchaseForNoAdmin;
 import com.example.eshop.model.web.PurchaseRequest;
 import com.example.eshop.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class PurchaseController {
     private PurchaseService purchaseService;
 
     @PostMapping("/register")
-    public Purchase register(@RequestBody PurchaseRequest request, BindingResult result, @RequestHeader("Authorization") String sessionId ){
+    public PurchaseForNoAdmin register(@RequestBody PurchaseRequest request, BindingResult result, @RequestHeader("Authorization") String sessionId ){
         if (result.hasErrors()) {
             throw new InputValidationException(result);
         }
@@ -28,8 +29,12 @@ public class PurchaseController {
     public Purchase getById(@PathVariable("purchaseId") Integer purchaseId) {
         return purchaseService.getById(purchaseId);
     }
-    @GetMapping("/all")
+    /*@GetMapping("/all")
     public List<Purchase> findAll(){
         return purchaseService.findAll();
+    }*/
+    @GetMapping("/all")
+    public List<?> findAll(@RequestHeader("Authorization") String sessionId){
+        return purchaseService.findAllCustom(sessionId);
     }
 }

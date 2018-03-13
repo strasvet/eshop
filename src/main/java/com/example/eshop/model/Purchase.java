@@ -1,5 +1,6 @@
 package com.example.eshop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,11 +23,13 @@ public class Purchase {
 
     @ManyToOne
     @JoinColumn(name="SOLDBY")
+    @JsonIgnore
     private User soldBy;
 
 
     @ManyToOne
     @JoinColumn(name="BOUGHTBY")
+    @JsonIgnore
     private User boughtBy;
 
     private Date sellDate;
